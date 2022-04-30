@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import *
 import sounddevice as sd
-from scipy import io as sio
-import scipy.io.wavfile
+import librosa
 import time
 
 class Info(tk.Frame):
@@ -14,7 +13,7 @@ class Info(tk.Frame):
         self.script.pack(padx=5)
 
     def set_info(self, script, cur, total):
-        self.exp.config(text="{} / {}".format(cur, total))
+        self.exp.config(text="{} / {}".format(cur, total), bg='#fff', fg='#f00')
         self.script.config(text="\"{}\"".format(script), font=("Consolas", 18))
 
 
@@ -23,6 +22,7 @@ class Select(tk.Frame):
         tk.LabelFrame.__init__(self, master, text = "")
         self.emotions = ["Happiness", "Surprise", "Neutral", "Fear", "Disgust", "Anger", "Sadness"]
         self.r = IntVar()
+        self.answer = self.emotions[self.r.get()]
         self.radios = []
         for idx, label in enumerate(self.emotions):
             self.radios.append(Radiobutton(self, text=label, variable=self.r, value=idx, command=self.select))
@@ -36,27 +36,30 @@ class Select(tk.Frame):
 
 
 class Page(tk.Frame):
-    def __init__(self, master, script, cur, total, sr, data):
+    def __init__(self, master, cur, total, data):
         tk.Frame.__init__(self, master)
-
+        self.filename, self.sr, self.label, self.script, self.y = data[0], data[1], data[2], data[3], data[4]
+        self.button = Button(self, text="Next", command=self.answer, activebackground="orange", state = DISABLED)
+        self.button.pack(side=BOTTOM)
 
         self.info = Info(self)
-        self.info.set_info(script, cur, total)
+        self.info.set_info(self.script, cur, total)
         self.info.pack(side=TOP, padx=10, pady=10)
 
         self.select = Select(self)
         self.select.pack(side=LEFT, padx=25, pady=5)
 
         self.play = Player(self)
-        self.play.set_audio(sr, data)
+        self.play.set_audio(self.sr, self.y)
         self.play.pack(side=RIGHT, padx=25, pady=5)
 
-        self.button = Button(self, text="Next", command=self.answer, activebackground="orange", state = DISABLED)
-        self.button.pack(side=BOTTOM)
+
 
     def answer(self):
         self.duration = time.time() - self.play.start_time
         self.ans = self.select.answer
+        self.master.save_answer()
+        self.master.switch_frame()
 
 
 class Player(tk.Frame):
@@ -82,8 +85,53 @@ class Player(tk.Frame):
     def set_audio(self, sr, data):
         self.sr, self.data = sr, data
 
-# Press the green button in the gutter to run the script.
+
+class StartPage(tk.Frame):
+    def __init__(self, master):
+        self.user, self.age, self.gender = tk.StringVar(), tk.StringVar(), tk.StringVar()
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text="닉네임 : ").grid(row=0, column=0, padx=10, pady=10)
+        tk.Label(self, text="나이(만) : ").grid(row=1, column=0, padx=10, pady=10)
+        tk.Entry(self, textvariable=self.user).grid(row=0, column=1, padx=10, pady=10)
+        tk.Entry(self, textvariable=self.age).grid(row=1, column=1, padx=10, pady=10)
+        tk.Radiobutton(self, text="남자", variable=self.gender, value="M").grid(row=2, column=0, padx=5, pady=5)
+        tk.Radiobutton(self, text="여자", variable=self.gender, value="F").grid(row=2, column=1, padx=5, pady=5)
+        self.gender.set('M')
+        tk.Button(self, text="다음", command=self.register).grid(row=3, column=1, padx=10, pady=10)
+
+    def register(self):
+        self.master.user = self.user.get()
+        self.master.age = int(self.age.get())
+        self.master.gender = self.gender.get()
+        self.master.switch_frame()
+
+class EndPage(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text="실험에 참가해주셔서 감사합니다.").grid(row=0, column=0, padx=10, pady=20)
+        tk.Button(self, text="종료", command=self.quit).grid(row=2, column=0, padx=10, pady=20)
+
+class InfoPage(tk.Frame):
+    def __init__(self, master, info):
+        tk.Frame.__init__(self, master)
+        tk.Label(self, text=info, wraplength = 360).grid(row=0, column=0, padx=10, pady=20)
+        tk.Button(self, text="시작", command=self.master.switch_frame).grid(row=2, column=0, padx=10, pady=20)
+
+class ExamplePage(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        self.emotions = ["Happiness", "Surprise", "Neutral"]# , "Fear", "Disgust", "Anger", "Sadness"]
+
+        self.radios = []
+        for idx, label in enumerate(self.emotions):
+            y, sr = librosa.load("./samples/{}.wav".format(label), sr=48000)
+            Button(self, text=label, command=lambda: sd.play(y, sr)).grid(row=idx, padx=10, pady=10)
+
+        tk.Button(self, text="다음", command=self.master.switch_frame).grid(row=9, column=0, padx=10, pady=20)
+
 if __name__ == '__main__':
+    from scipy import io as sio
+    import scipy.io.wavfile
     wave_name = "./samples/036-005.wav"
     script = "나 먼저 갈게"
     sr, data = sio.wavfile.read(wave_name)
@@ -94,5 +142,3 @@ if __name__ == '__main__':
     page.pack()
 
     top.mainloop()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
