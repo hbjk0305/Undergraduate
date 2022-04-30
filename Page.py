@@ -3,6 +3,7 @@ from tkinter import *
 import sounddevice as sd
 import librosa
 import time
+from functools import partial
 
 class Info(tk.Frame):
     def __init__(self, master):
@@ -120,12 +121,15 @@ class InfoPage(tk.Frame):
 class ExamplePage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
-        self.emotions = ["Happiness", "Surprise", "Neutral"]# , "Fear", "Disgust", "Anger", "Sadness"]
 
+        self.emotions = ["Happiness", "Surprise", "Neutral"]# , "Fear", "Disgust", "Anger", "Sadness"]
+        self.wavs = []
+        for e in self.emotions:
+            y, sr = librosa.load("./samples/{}.wav".format(e), sr=48000)
+            self.wavs.append((y, sr))
         self.radios = []
         for idx, label in enumerate(self.emotions):
-            y, sr = librosa.load("./samples/{}.wav".format(label), sr=48000)
-            Button(self, text=label, command=lambda: sd.play(y, sr)).grid(row=idx, padx=10, pady=10)
+            Button(self, text=label, command=partial(sd.play, self.wavs[idx][0], self.wavs[idx][1])).grid(row=idx, padx=10, pady=10)
 
         tk.Button(self, text="다음", command=self.master.switch_frame).grid(row=9, column=0, padx=10, pady=20)
 
