@@ -51,7 +51,7 @@ Play 버튼을 눌렀을 때 들리는 음성을 듣고, 총 7가지 감정 중 
     def end(self):
         fields = ["User", "Gender", "Age", "filename", "sr", "answer", "duration", "label", "script"]
         os.makedirs("./result", exist_ok=True)
-        with open('./result/{}.csv'.format(self.user), 'w', newline='') as f:
+        with open('./result/{}.csv'.format(self.user), 'w', encoding='utf-8', newline='') as f:
             write = csv.writer(f)
             write.writerow(fields)
             write.writerows(self.answers)

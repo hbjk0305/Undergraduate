@@ -122,7 +122,7 @@ class ExamplePage(tk.Frame):
     def __init__(self, master):
         tk.Frame.__init__(self, master)
 
-        self.emotions = ["Happiness", "Surprise", "Neutral"]# , "Fear", "Disgust", "Anger", "Sadness"]
+        self.emotions = ["Happiness", "Surprise", "Neutral" , "Fear", "Disgust", "Anger", "Sadness"]
         self.wavs = []
         for e in self.emotions:
             y, sr = librosa.load("./samples/{}.wav".format(e), sr=48000)
