@@ -2,7 +2,7 @@ import glob
 import librosa
 import random
 
-random.seed(42)
+# random.seed(42)
 
 class Dataset:
     def __init__(self, data_csv, srs):
