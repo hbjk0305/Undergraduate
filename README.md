@@ -1,5 +1,7 @@
 # Undergraduate
 
+현재 재생 오류가 있음.
+
 ## 실험 설명
 본 실험에서는 음질의 차이에 따른 감정의 전달능력을 알아보고자 합니다.
 실험은 크게 예행연습과 본 실험으로 구성되어 있습니다.
@@ -40,9 +42,14 @@
 
 
 ## 프로그램 실행 방법
+
+
 ```
 git clone https://github.com/hbjk0305/Undergraduate.git
 cd Undergraduate
+```
+먼저 samples.zip의 압축을 풀어주세요. 폴더명은 samples로 유지해주세요.
+```
 pip install sounddevice librosa
 python3 App.py
 ```
